@@ -1,0 +1,46 @@
+## Interface: 110107
+## Version: @project-version@
+# ## X-Curse-Project-ID: 12345
+# ## X-Wago-ID: ABCDE
+## Title: AllTheThings Collection History
+## Notes-enUS: A companion addon for AllTheThings that tracks collection history.
+## Notes-deDE: Ein Begleitaddon für AllTheThings, das die Sammlungsverlauf verfolgt.
+## Notes-esES: Un complemento para AllTheThings que rastrea el historial de colecciones.
+## Notes-esMX: Un complemento para AllTheThings que rastrea el historial de colecciones.
+## Notes-frFR: Un addon compagnon pour AllTheThings qui suit l'historique des collections.
+## Notes-itIT: Un addon companion per AllTheThings che tiene traccia della cronologia delle collezioni.
+## Notes-koKR: AllTheThings의 수집 기록을 추적하는 동반 애드온입니다.
+## Notes-ptBR: Um addon companion para AllTheThings que rastreia o histórico de coleções.
+## Notes-ruRU: Компаньон-аддон для AllTheThings, который отслеживает историю коллекций.
+## Notes-zhCN: 一个用于AllTheThings的插件，跟踪收藏历史。
+## Notes-zhTW: 一個用於AllTheThings的插件，跟踪收藏歷史。
+
+## Author: Myrhial
+## SavedVariables: ATTCollectionHistoryDB
+## AddonCompartmentFunc: ATTCollectionHistory_Click
+# ## IconTexture: Interface\AddOns\AllTheThings Collection History\ATTCollectionHistory.blp
+
+# https://warcraft.wiki.gg/wiki/Addon_Categories
+## Category: Collections
+## Category-deDE: Kriegsmeutesammlungen
+## Category-esES: Colecciones de banda guerrera
+## Category-esMX: Colecciones de tropa
+## Category-frFR: Collections du bataillon
+## Category-itIT: Collezioni della Brigata
+## Category-koKR: 전투부대 수집품
+## Category-ptBR: Coleções do Bando de Guerra
+## Category-ruRU: Коллекции отряда
+## Category-zhCN: 战团藏品
+## Category-zhTW: 戰隊收藏
+
+ATTCollectionHistory.lua
+# Localization\Localization.core.lua
+# Localization\Localization.de.lua
+# Localization\Localization.en.lua
+# Localization\Localization.fr.lua
+# Localization\Localization.es.lua
+# Localization\Localization.it.lua
+# Localization\Localization.ko.lua
+# Localization\Localization.pt.lua
+# Localization\Localization.ru.lua
+# Localization\Localization.zh.lua
