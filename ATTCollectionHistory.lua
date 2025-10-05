@@ -36,6 +36,13 @@ function ATTCollectionHistory_Click(self, button)
     app.PrintHistory()
 end
 
+-- Slash command to open settings
+SLASH_ATTCOLLECTIONHISTORY1 = "/attch";
+SLASH_ATTCOLLECTIONHISTORY2 = "/attcollectionhistory";
+SlashCmdList["ATTCOLLECTIONHISTORY"] = function(msg)
+	app.PrintHistory()
+end
+
 function app.PrintHistory()
     print("AllTheThings Collection History:");
 
