@@ -89,7 +89,9 @@ function app.PrintHistory(filter)
     local found = false -- Track if any entry matches filter
     for _, value in ipairs(ATTCollectionHistoryDB.history) do
         local ts = ParseDateString(value.collectedAt)
-        if ts and ts >= startTime then
+        if not ts then
+            print("Warning: Malformed date string", value.collectedAt, "for", value.text)
+        elseif ts >= startTime then
             local entryDate = date("%Y-%m-%d", ts)
             if lastDate ~= entryDate then
                 print("---- " .. entryDate .. " ----")
@@ -117,8 +119,9 @@ ATTC.AddEventHandler("OnThingCollected", function(typeORt)
 		if not typeORt or not typeORt.collectible then return end
 
         -- Record collection to collection history table in SavedVariables
+        local text = typeORt.text or "[Unknown collectible]"
         table.insert(ATTCollectionHistoryDB.history, {
-            text = typeORt.text,
+            text = text,
             collectedAt = date("%Y-%m-%d %H:%M:%S"),
         });
 
