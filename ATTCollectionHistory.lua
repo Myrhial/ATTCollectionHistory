@@ -93,9 +93,50 @@ local function CreateHistoryWindow()
         end
         if content.noData then content.noData:Hide() end
 
+        local lastDate
+        local lineIndex = 1
+        local lastDayLineIndex
         for i = #history, 1, -1 do
             local entry = history[i]
-            local btn = content.lines[i]
+            local entryDate = entry.collectedAt:match("^(%d%d%d%d%-%d%d%-%d%d)")
+            if entryDate ~= lastDate then
+                -- Add an empty spacer after the previous day's entries (except before the first header)
+                if lastDate then
+                    local spacer = content.lines[lineIndex]
+                    if not spacer then
+                        spacer = CreateFrame("Frame", nil, content)
+                        spacer:SetSize(340, 8)
+                        content.lines[lineIndex] = spacer
+                    end
+                    spacer:SetPoint("TOPLEFT", 5, y)
+                    spacer:Show()
+                    y = y - 8
+                    lineIndex = lineIndex + 1
+                end
+
+                -- Add a bigger header for the new date
+                local header = content.lines[lineIndex]
+                if not header then
+                    header = CreateFrame("Frame", nil, content)
+                    header:SetSize(340, 22)
+                    header.text = header:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+                    header.text:SetPoint("LEFT")
+                    header.text:SetTextColor(1, 0.82, 0) -- gold/yellow
+                    content.lines[lineIndex] = header
+                else
+                    header.text:SetFontObject(GameFontHighlightLarge)
+                    header.text:SetTextColor(1, 0.82, 0)
+                end
+                header:SetPoint("TOPLEFT", 5, y)
+                header:Show()
+                header.text:SetText(entryDate)
+                y = y - 22
+                lineIndex = lineIndex + 1
+                lastDate = entryDate
+            end
+
+            -- Add the entry line
+            local btn = content.lines[lineIndex]
             if not btn then
                 btn = CreateFrame("Button", nil, content)
                 btn:SetSize(340, 16)
@@ -113,14 +154,14 @@ local function CreateHistoryWindow()
                 btn:SetScript("OnLeave", function(self)
                     GameTooltip:Hide()
                 end)
-                content.lines[i] = btn
+                content.lines[lineIndex] = btn
             end
             btn:SetPoint("TOPLEFT", 5, y)
             btn:Show()
-
-            btn.link = entry.text -- Use the full link
+            btn.link = entry.text
             btn.text:SetText(entry.collectedAt .. " - " .. entry.text)
             y = y - 16
+            lineIndex = lineIndex + 1
         end
         content:SetHeight(-y + 10)
     end
