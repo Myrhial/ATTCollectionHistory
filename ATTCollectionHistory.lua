@@ -31,9 +31,110 @@ function event:ADDON_LOADED(addOnName, containsBindings)
     end
 end
 
+-- GUI Window to show collection history
+local function CreateHistoryWindow()
+    if ATTCH_HistoryFrame then
+        ATTCH_HistoryFrame:Show()
+        return
+    end
+
+    -- Create the main frame
+    local frame = CreateFrame("Frame", "ATTCH_HistoryFrame", UIParent, "BasicFrameTemplateWithInset")
+    frame:SetSize(400, 400)
+    frame:SetPoint("CENTER")
+    frame:SetMovable(true)
+    frame:EnableMouse(true)
+    frame:RegisterForDrag("LeftButton")
+    frame:SetScript("OnDragStart", frame.StartMoving)
+    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    frame.title = frame:CreateFontString(nil, "OVERLAY")
+    frame.title:SetFontObject("GameFontHighlight")
+    frame.title:SetPoint("LEFT", frame.TitleBg, "LEFT", 5, 0)
+    frame.title:SetText("ATT Collection History")
+
+    -- ScrollFrame
+    local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", 10, -30)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -30, 10)
+
+    -- Content frame inside the scrollframe
+    local content = CreateFrame("Frame", nil, scrollFrame)
+    content:SetSize(1, 1)
+    scrollFrame:SetScrollChild(content)
+    frame.content = content
+    frame.scrollFrame = scrollFrame
+
+    -- Close button
+    frame.close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+    frame.close:SetPoint("TOPRIGHT", frame, "TOPRIGHT")
+
+    -- Function to update history
+    function frame:UpdateHistory()
+        -- Hide old buttons
+        if content.lines then
+            for _, btn in ipairs(content.lines) do
+                btn:Hide()
+            end
+        else
+            content.lines = {}
+        end
+
+        local y = -5
+        local history = ATTCollectionHistoryDB and ATTCollectionHistoryDB.history or {}
+        if #history == 0 then
+            if not content.noData then
+                content.noData = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+                content.noData:SetPoint("TOPLEFT", 5, y)
+                content.noData:SetText("No collection history found.")
+            end
+            content.noData:Show()
+            content:SetHeight(30)
+            return
+        end
+        if content.noData then content.noData:Hide() end
+
+        for i = #history, 1, -1 do
+            local entry = history[i]
+            local btn = content.lines[i]
+            if not btn then
+                btn = CreateFrame("Button", nil, content)
+                btn:SetSize(340, 16)
+                btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+                btn.text:SetPoint("LEFT")
+                btn:SetFontString(btn.text)
+                btn:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+                btn:SetScript("OnEnter", function(self)
+                    if self.link and self.link:find("|H") then
+                        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+                        GameTooltip:SetHyperlink(self.link)
+                        GameTooltip:Show()
+                    end
+                end)
+                btn:SetScript("OnLeave", function(self)
+                    GameTooltip:Hide()
+                end)
+                content.lines[i] = btn
+            end
+            btn:SetPoint("TOPLEFT", 5, y)
+            btn:Show()
+
+            btn.link = entry.text -- Use the full link
+            btn.text:SetText(entry.collectedAt .. " - " .. entry.text)
+            y = y - 16
+        end
+        content:SetHeight(-y + 10)
+    end
+
+    frame:UpdateHistory()
+    frame:Hide()
+    ATTCH_HistoryFrame = frame
+end
+
 -- AddOn Compartment Click
 function ATTCollectionHistory_Click(self, button)
-    app.PrintHistory("session")
+    CreateHistoryWindow()
+    ATTCH_HistoryFrame:UpdateHistory()
+    ATTCH_HistoryFrame:Show()
 end
 
 -- Helper: Parse date string to timestamp
@@ -108,10 +209,23 @@ end
 
 -- Slash command with parameter
 SLASH_ATTCOLLECTIONHISTORY1 = "/attch";
-SLASH_ATTCOLLECTIONHISTORY2 = "/attcollectionhistory";
 SlashCmdList["ATTCOLLECTIONHISTORY"] = function(msg)
     local filter = msg:match("^(%S+)")
-    app.PrintHistory(filter)
+    if filter == "show" then
+        CreateHistoryWindow()
+        ATTCH_HistoryFrame:UpdateHistory()
+        ATTCH_HistoryFrame:Show()
+        return
+    end
+    if filter == "session" or filter == "day" or filter == "week" or filter == "month" then
+        app.PrintHistory(filter)
+        return
+    end
+    if not filter or filter == "" then
+        app.PrintHistory("session")
+        return
+    end
+    print("Usage: /attch [session|day|week|month|show]")
 end
 
 ATTC.AddEventHandler("OnThingCollected", function(typeORt)
