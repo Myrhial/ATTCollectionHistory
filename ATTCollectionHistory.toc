@@ -1,7 +1,7 @@
 ## Interface: 110205, 110207, 120000
 ## Version: @project-version@
-# ## X-Curse-Project-ID: 12345
-# ## X-Wago-ID: ABCDE
+## X-Curse-Project-ID: 1415157
+## X-Wago-ID: 96dogONO
 ## Title: AllTheThings Collection History
 ## Notes-enUS: A companion addon for AllTheThings that tracks collection history.
 ## Notes-deDE: Ein Begleitaddon für AllTheThings, das die Sammlungsverlauf verfolgt.
