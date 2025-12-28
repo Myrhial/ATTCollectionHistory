@@ -75,9 +75,8 @@ local function CreateHistoryWindow()
             for _, btn in ipairs(content.lines) do
                 btn:Hide()
             end
-        else
-            content.lines = {}
         end
+        content.lines = {}
 
         local y = -5
         local history = ATTCollectionHistoryDB and ATTCollectionHistoryDB.history or {}
@@ -279,6 +278,11 @@ ATTC.AddEventHandler("OnThingCollected", function(typeORt)
             text = text,
             collectedAt = date("%Y-%m-%d %H:%M:%S"),
         });
+
+        -- Update GUI if open
+        if ATTCH_HistoryFrame and ATTCH_HistoryFrame:IsShown() then
+            ATTCH_HistoryFrame:UpdateHistory()
+        end
 
         -- DEBUG: Print all own and __index and __class keys
         -- for k, v in pairs(typeORt) do
