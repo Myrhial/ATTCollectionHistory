@@ -19,6 +19,8 @@
 ## SavedVariables: ATTCollectionHistoryDB
 ## AddonCompartmentFunc: ATTCollectionHistory_Click
 # ## IconTexture: Interface\AddOns\AllTheThings Collection History\ATTCollectionHistory.blp
+## Dependencies: AllTheThings
+## Group: AllTheThings
 
 # https://warcraft.wiki.gg/wiki/Addon_Categories
 ## Category: Collections
