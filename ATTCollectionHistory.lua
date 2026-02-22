@@ -47,10 +47,23 @@ local function CreateHistoryWindow()
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    frame:SetResizable(true)
+	frame:SetResizeBounds(200, 200, 800, 800)
     frame.title = frame:CreateFontString(nil, "OVERLAY")
     frame.title:SetFontObject("GameFontHighlight")
     frame.title:SetPoint("LEFT", frame.TitleBg, "LEFT", 5, 0)
     frame.title:SetText("ATT Collection History")
+
+    -- Resize corner
+	local corner = CreateFrame("Button", nil, frame)
+	corner:EnableMouse("true")
+	corner:SetPoint("BOTTOMRIGHT")
+	corner:SetSize(20,20)
+	corner:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+	corner:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+	corner:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+	corner:SetScript("OnMouseDown", function() frame:StartSizing("BOTTOMRIGHT") end)
+	corner:SetScript("OnMouseUp", function() frame:StopMovingOrSizing() end)
 
     -- ScrollFrame
     local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
