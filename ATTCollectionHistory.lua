@@ -8,12 +8,13 @@ local api = app.api -- Api prefix for easier access
 
 -- Event registration
 local event = CreateFrame("Frame")
-event:SetScript("OnEvent", function(self, event, ...)
-	if self[event] then
-		self[event](self, ...)
+event:SetScript("OnEvent", function(self, eventName, ...)
+	if self[eventName] then
+		self[eventName](self, ...)
 	end
 end)
 event:RegisterEvent("ADDON_LOADED")
+event:RegisterEvent("HEIRLOOMS_UPDATED")
 
 -- Initial load
 function app.Initialise()
@@ -283,19 +284,25 @@ end
 
 ATTC.AddEventHandler("OnThingCollected", function(typeORt)
     if type(typeORt) == "table" then
+        -- Following the ATT logic
 		if not typeORt or not typeORt.collectible then return end
 
+        local base = typeORt.base or typeORt
+
+        local thingType = "Unknown"
+        if type(base) == "function" then
+			thingType = base(typeORt, "__type")
+		elseif type(base) == "table" and base.__type ~= nil then
+			thingType = base.__type
+		end
+
         -- Record collection to collection history table in SavedVariables
-        local text = typeORt.text or "[Unknown collectible]"
+        local text = typeORt.text or typeORt.link or typeORt.name or "[Unknown collectible]"
         table.insert(ATTCollectionHistoryDB.history, {
             text = text,
             collectedAt = date("%Y-%m-%d %H:%M:%S"),
+            type = thingType,
         });
-
-        -- Update GUI if open
-        if ATTCH_HistoryFrame and ATTCH_HistoryFrame:IsShown() then
-            ATTCH_HistoryFrame:UpdateHistory()
-        end
 
         -- DEBUG: Print all own and __index and __class keys
         -- for k, v in pairs(typeORt) do
@@ -305,11 +312,41 @@ ATTC.AddEventHandler("OnThingCollected", function(typeORt)
         -- if mt and type(mt.__class) == "table" then
         --     for k, v in pairs(mt.__class) do
         --         print("__class:", k, v)
+        --         if type(v) == "function" then
+        --             local success, result = pcall(v, typeORt, "__type")
+        --             if success then
+        --                 print("__class function result:", result)
+        --             else
+        --                 print("__class function error:", result)
+        --             end
+        --         end
         --     end
         -- end
-	else
-        print("COLLECTED A THING", typeORt);
+	else    
+        -- Heirlooms (upgrades only) and recipes go here: see workarounds below
 	end
+
+    -- Update GUI if open
+    if ATTCH_HistoryFrame and ATTCH_HistoryFrame:IsShown() then
+        ATTCH_HistoryFrame:UpdateHistory()
+    end
 end);
+
+-- Workaround for collecting heirlooms, since we cannot rely on the OnThingsCollected event for those
+function event:HEIRLOOMS_UPDATED(itemID, updateReason, hideUntilLearned)
+    if itemID then
+        local name, itemLink = GetItemInfo(itemID)
+        table.insert(ATTCollectionHistoryDB.history, {
+            text = itemLink or name or ("Heirloom " .. itemID),
+            collectedAt = date("%Y-%m-%d %H:%M:%S"),
+            type = "Heirlooms",
+        });
+
+        -- Update GUI if open
+        if ATTCH_HistoryFrame and ATTCH_HistoryFrame:IsShown() then
+            ATTCH_HistoryFrame:UpdateHistory()
+        end
+    end
+end
 
 -- TODO: OnThingRemoved?
