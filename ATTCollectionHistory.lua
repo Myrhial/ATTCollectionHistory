@@ -23,6 +23,7 @@ function app.Initialise()
 
     -- Default collection history table
     if not ATTCollectionHistoryDB.history then ATTCollectionHistoryDB.history = {} end
+    if not ATTCollectionHistoryDB.windowPosition then ATTCollectionHistoryDB.windowPosition = { ["left"] = 500, ["bottom"] = 500, ["width"] = 400, ["height"] = 400 } end
 end
 
 -- Addon is loaded
@@ -41,15 +42,16 @@ local function CreateHistoryWindow()
 
     -- Create the main frame
     local frame = CreateFrame("Frame", "ATTCH_HistoryFrame", UIParent, "BasicFrameTemplateWithInset")
-    frame:SetSize(400, 400)
-    frame:SetPoint("CENTER")
+    frame:SetSize(ATTCollectionHistoryDB.windowPosition.width, ATTCollectionHistoryDB.windowPosition.height)
+    frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", ATTCollectionHistoryDB.windowPosition.left, ATTCollectionHistoryDB.windowPosition.bottom)
     frame:SetMovable(true)
     frame:EnableMouse(true)
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+    frame:SetScript("OnDragStop", function() frame:SavePosition() end)
     frame:SetResizable(true)
 	frame:SetResizeBounds(200, 200, 800, 800)
+    frame:SetToplevel(true)
     frame.title = frame:CreateFontString(nil, "OVERLAY")
     frame.title:SetFontObject("GameFontHighlight")
     frame.title:SetPoint("LEFT", frame.TitleBg, "LEFT", 5, 0)
@@ -64,7 +66,7 @@ local function CreateHistoryWindow()
 	corner:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
 	corner:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
 	corner:SetScript("OnMouseDown", function() frame:StartSizing("BOTTOMRIGHT") end)
-	corner:SetScript("OnMouseUp", function() frame:StopMovingOrSizing() end)
+	corner:SetScript("OnMouseUp", function() frame:SavePosition() end)
 
     -- ScrollFrame
     local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
@@ -177,6 +179,14 @@ local function CreateHistoryWindow()
             lineIndex = lineIndex + 1
         end
         content:SetHeight(-y + 10)
+    end
+
+    function frame:SavePosition()
+        frame:StopMovingOrSizing() 
+        local left = frame:GetLeft()
+        local bottom = frame:GetBottom()
+        local width, height = frame:GetSize()
+        ATTCollectionHistoryDB["windowPosition"] = { ["left"] = left, ["bottom"] = bottom, ["width"] = width, ["height"] = height, }
     end
 
     frame:UpdateHistory()
