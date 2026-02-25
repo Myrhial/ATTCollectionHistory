@@ -293,6 +293,8 @@ SlashCmdList["ATTCOLLECTIONHISTORY"] = function(msg)
 end
 
 ATTC.AddEventHandler("OnThingCollected", function(typeORt)
+    --ATTC.PrintTable(typeORt)
+
     if type(typeORt) == "table" then
         -- Following the ATT logic
 		if not typeORt or not typeORt.collectible then return end
@@ -313,27 +315,8 @@ ATTC.AddEventHandler("OnThingCollected", function(typeORt)
             collectedAt = date("%Y-%m-%d %H:%M:%S"),
             type = thingType,
         });
-
-        -- DEBUG: Print all own and __index and __class keys
-        -- for k, v in pairs(typeORt) do
-        --     print("Own:", k, v)
-        -- end
-        -- local mt = getmetatable(typeORt)
-        -- if mt and type(mt.__class) == "table" then
-        --     for k, v in pairs(mt.__class) do
-        --         print("__class:", k, v)
-        --         if type(v) == "function" then
-        --             local success, result = pcall(v, typeORt, "__type")
-        --             if success then
-        --                 print("__class function result:", result)
-        --             else
-        --                 print("__class function error:", result)
-        --             end
-        --         end
-        --     end
-        -- end
 	else    
-        -- Heirlooms (upgrades only) and recipes go here: see workarounds below
+        -- Heirlooms (upgrades only) go here: see workaround below
 	end
 
     -- Update GUI if open
