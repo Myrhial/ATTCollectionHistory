@@ -18,7 +18,9 @@
 ## Author: Myrhial
 ## SavedVariables: ATTCollectionHistoryDB
 ## AddonCompartmentFunc: ATTCollectionHistory_Click
-# ## IconTexture: Interface\AddOns\AllTheThings Collection History\ATTCollectionHistory.blp
+## AddonCompartmentFuncOnEnter: ATTCollectionHistory_OnEnter
+## AddonCompartmentFuncOnLeave: ATTCollectionHistory_OnLeave
+## IconTexture: Interface\AddOns\ATTCollectionHistory\ATTCollectionHistory.blp
 ## Dependencies: AllTheThings
 ## Group: AllTheThings
 
@@ -35,14 +37,16 @@
 ## Category-zhCN: 战团藏品
 ## Category-zhTW: 戰隊收藏
 
+libs\LibDBIcon-1.0\embeds.xml
+libs\LibDBIcon-1.0\LibDBIcon-1.0\LibDBIcon-1.0.lua
 ATTCollectionHistory.lua
-# Localization\Localization.core.lua
-# Localization\Localization.de.lua
-# Localization\Localization.en.lua
-# Localization\Localization.fr.lua
-# Localization\Localization.es.lua
-# Localization\Localization.it.lua
-# Localization\Localization.ko.lua
-# Localization\Localization.pt.lua
-# Localization\Localization.ru.lua
-# Localization\Localization.zh.lua
+Localization\Localization.core.lua
+Localization\Localization.de.lua
+Localization\Localization.en.lua
+Localization\Localization.fr.lua
+Localization\Localization.es.lua
+Localization\Localization.it.lua
+Localization\Localization.ko.lua
+Localization\Localization.pt.lua
+Localization\Localization.ru.lua
+Localization\Localization.zh.lua

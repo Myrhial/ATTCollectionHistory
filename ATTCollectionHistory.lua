@@ -5,6 +5,7 @@ local L = app.L;	-- Localisation table
 app.api = {}    -- Api table for our app
 ATTCollectionHistory = app.api  -- Api namespace
 local api = app.api -- Api prefix for easier access
+app.Name = "AllTheThings Collection History"	-- Do not localize
 
 -- Event registration
 local event = CreateFrame("Frame")
@@ -19,22 +20,61 @@ event:RegisterEvent("HEIRLOOMS_UPDATED")
 -- Initial load
 function app.Initialise()
     -- Declare SavedVariables
-	if not ATTCollectionHistoryDB then ATTCollectionHistoryDB = {} end
+	if not ATTCollectionHistoryDB then 
+        ATTCollectionHistoryDB = {} 
+    end
 
     -- Default collection history table
-    if not ATTCollectionHistoryDB.history then ATTCollectionHistoryDB.history = {} end
-    if not ATTCollectionHistoryDB.windowPosition then ATTCollectionHistoryDB.windowPosition = { ["left"] = 500, ["bottom"] = 500, ["width"] = 400, ["height"] = 400 } end
+    if not ATTCollectionHistoryDB.history then 
+        ATTCollectionHistoryDB.history = {} 
+    end
+    if not ATTCollectionHistoryDB.windowPosition then 
+        ATTCollectionHistoryDB.windowPosition = { ["left"] = 500, ["bottom"] = 500, ["width"] = 400, ["height"] = 400 } 
+    end
+    
+    if ATTCollectionHistoryDB["hide"] == nil then 
+		ATTCollectionHistoryDB["hide"] = false
+	end
+end
+
+-- Minimap icon
+function app.MinimapIcon()
+	local LDB = LibStub("LibDataBroker-1.1")
+	local icon = LDB:NewDataObject(appName, {
+		type = "data source",
+		text = app.Name,
+		icon = "Interface\\AddOns\\ATTCollectionHistory\\ATTCollectionHistory.blp",
+		OnClick = function(frame, button) 
+			if button == "RightButton" then
+                app.OpenSettings()
+            else
+                app.CreateHistoryWindow()
+                ATTCH_HistoryFrame:UpdateHistory()
+                ATTCH_HistoryFrame:Show()
+            end
+		end,
+        OnTooltipShow = function(tooltip)
+            tooltip:AddLine(app.Name)
+            tooltip:AddLine(L["Left-click to open collection history window"])
+            tooltip:AddLine(L["Right-click to open settings"])
+        end,
+	})
+
+	app.MinimapIcon = LibStub("LibDBIcon-1.0")
+	app.MinimapIcon:Register(appName, icon, ATTCollectionHistoryDB)
 end
 
 -- Addon is loaded
 function event:ADDON_LOADED(addOnName, containsBindings)
 	if addOnName == appName then
         app.Initialise()
+        app.Settings()
+        app.MinimapIcon()
     end
 end
 
 -- GUI Window to show collection history
-local function CreateHistoryWindow()
+function app.CreateHistoryWindow()
     if ATTCH_HistoryFrame then
         ATTCH_HistoryFrame:Show()
         return
@@ -194,11 +234,34 @@ local function CreateHistoryWindow()
     ATTCH_HistoryFrame = frame
 end
 
+-- Open settings
+function app.OpenSettings()
+	Settings.OpenToCategory(app.Category:GetID())
+end
+
 -- AddOn Compartment Click
-function ATTCollectionHistory_Click(self, button)
-    CreateHistoryWindow()
-    ATTCH_HistoryFrame:UpdateHistory()
-    ATTCH_HistoryFrame:Show()
+function ATTCollectionHistory_Click(addOnName, button)
+    if button == "RightButton" then
+        app.OpenSettings()
+    else
+        app.CreateHistoryWindow()
+        ATTCH_HistoryFrame:UpdateHistory()
+        ATTCH_HistoryFrame:Show()
+    end
+end
+
+-- Addon Compartment OnEnter
+function ATTCollectionHistory_OnEnter(addOnName, button)
+    MenuUtil.ShowTooltip(button, function(tooltip)
+        tooltip:SetText(app.Name, 1, 1, 1)
+        tooltip:AddLine(L["Left-click to open collection history window"])
+        tooltip:AddLine(L["Right-click to open settings"])
+    end)
+end
+
+-- Addon Compartment OnLeave
+function ATTCollectionHistory_OnLeave(addOnName, button)
+    MenuUtil.HideTooltip(button)
 end
 
 -- Helper: Parse date string to timestamp
@@ -276,9 +339,13 @@ SLASH_ATTCOLLECTIONHISTORY1 = "/attch";
 SlashCmdList["ATTCOLLECTIONHISTORY"] = function(msg)
     local filter = msg:match("^(%S+)")
     if filter == "show" then
-        CreateHistoryWindow()
+        app.CreateHistoryWindow()
         ATTCH_HistoryFrame:UpdateHistory()
         ATTCH_HistoryFrame:Show()
+        return
+    end
+    if filter == "settings" then
+        app.OpenSettings()
         return
     end
     if filter == "session" or filter == "day" or filter == "week" or filter == "month" then
@@ -289,7 +356,7 @@ SlashCmdList["ATTCOLLECTIONHISTORY"] = function(msg)
         app.PrintHistory("session")
         return
     end
-    print("Usage: /attch [session|day|week|month|show]")
+    print("Usage: /attch [session|day|week|month|show|settings]")
 end
 
 ATTC.AddEventHandler("OnThingCollected", function(typeORt)
@@ -343,3 +410,52 @@ function event:HEIRLOOMS_UPDATED(itemID, updateReason, hideUntilLearned)
 end
 
 -- TODO: OnThingRemoved?
+
+-- Settings
+function app.Settings()
+	-- Settings page
+	local category, layout = Settings.RegisterVerticalLayoutCategory(app.Name)
+	Settings.RegisterAddOnCategory(category)
+	app.Category = category
+
+	layout:AddInitializer(CreateSettingsListSectionHeaderInitializer(C_AddOns.GetAddOnMetadata(appName, "Version")))
+
+	local CreateCheckbox = Settings.CreateCheckbox or Settings.CreateCheckBox
+
+	local function OnSettingChanged(_, setting, value)
+		local variable = setting:GetVariable()
+
+		if strsub(variable, 1, 21) == "ATTCollectionHistory_" then
+			variable = strsub(variable, 22);
+		end
+	end
+
+	local function RegisterSetting(variableKey, defaultValue, name)
+		local uniqueVariable = "ATTCollectionHistory_" .. variableKey;
+
+		local setting;
+		setting = Settings.RegisterAddOnSetting(category, uniqueVariable, variableKey, ATTCollectionHistoryDB, type(defaultValue), name, defaultValue);
+
+		setting:SetValue(ATTCollectionHistoryDB[variableKey]);
+		Settings.SetOnValueChangedCallback(uniqueVariable, OnSettingChanged);
+
+		return setting;
+	end
+
+	do -- checkbox
+		local variable = "hide"
+		local name = L["Hide minimap icon"]
+		local tooltip = L["Hide minimap icon tooltip"]
+		local defaultValue = false
+
+		local setting = RegisterSetting(variable, defaultValue, name)
+		CreateCheckbox(category, setting, tooltip)
+		setting:SetValueChangedCallback(function()
+			if ATTCollectionHistoryDB["hide"] == false then
+				app.MinimapIcon:Show(appName)
+			else
+				app.MinimapIcon:Hide(appName)
+			end
+		end)
+	end
+end
