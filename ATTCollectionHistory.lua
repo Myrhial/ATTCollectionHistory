@@ -81,21 +81,32 @@ function app.CreateHistoryWindow()
     end
 
     -- Create the main frame
-    local frame = CreateFrame("Frame", "ATTCH_HistoryFrame", UIParent, "BasicFrameTemplateWithInset")
+    local frame = CreateFrame("Frame", "ATTCH_HistoryFrame", UIParent, "BackdropTemplate")
+    frame:SetBackdrop({
+		bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+		edgeFile = "Interface/Tooltips/UI-Tooltip-Border",
+		edgeSize = 16,
+		insets = { left = 4, right = 4, top = 4, bottom = 4 },
+	})
+	frame:SetBackdropColor(0, 0, 0, 1)
+    frame:SetBackdropBorderColor(1, 1, 1, 0.8)
     frame:SetSize(ATTCollectionHistoryDB.windowPosition.width, ATTCollectionHistoryDB.windowPosition.height)
     frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", ATTCollectionHistoryDB.windowPosition.left, ATTCollectionHistoryDB.windowPosition.bottom)
     frame:SetMovable(true)
     frame:EnableMouse(true)
+    frame:SetClampedToScreen(true)
     frame:RegisterForDrag("LeftButton")
     frame:SetScript("OnDragStart", frame.StartMoving)
     frame:SetScript("OnDragStop", function() frame:SavePosition() end)
     frame:SetResizable(true)
 	frame:SetResizeBounds(200, 200, 800, 800)
     frame:SetToplevel(true)
-    frame.title = frame:CreateFontString(nil, "OVERLAY")
-    frame.title:SetFontObject("GameFontHighlight")
-    frame.title:SetPoint("LEFT", frame.TitleBg, "LEFT", 5, 0)
-    frame.title:SetText("ATT Collection History")
+
+    -- Main frame title
+    local title = frame:CreateFontString(nil, "OVERLAY")
+    title:SetFontObject("GameFontHighlight")
+    title:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -10)
+    title:SetText("ATT Collection History")
 
     -- Resize corner
 	local corner = CreateFrame("Button", nil, frame)
@@ -110,8 +121,8 @@ function app.CreateHistoryWindow()
 
     -- ScrollFrame
     local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", 10, -30)
-    scrollFrame:SetPoint("BOTTOMRIGHT", -30, 10)
+    scrollFrame:SetPoint("TOPLEFT", 5, -25)
+    scrollFrame:SetPoint("BOTTOMRIGHT", -26, 15)
 
     -- Content frame inside the scrollframe
     local content = CreateFrame("Frame", nil, scrollFrame)
