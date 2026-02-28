@@ -31,6 +31,14 @@ function app.Initialise()
     if not ATTCollectionHistoryDB.windowPosition then 
         ATTCollectionHistoryDB.windowPosition = { ["left"] = 500, ["bottom"] = 500, ["width"] = 400, ["height"] = 400 } 
     end
+
+    if ATTCollectionHistoryDB.windowLocked == nil then 
+        ATTCollectionHistoryDB.windowLocked = false
+    end
+
+    if ATTCollectionHistoryDB.windowVisible == nil then 
+        ATTCollectionHistoryDB.windowVisible = false
+    end
     
     if ATTCollectionHistoryDB["hide"] == nil then 
 		ATTCollectionHistoryDB["hide"] = false
@@ -51,6 +59,7 @@ function app.MinimapIcon()
                 app.CreateHistoryWindow()
                 ATTCH_HistoryFrame:UpdateHistory()
                 ATTCH_HistoryFrame:Show()
+                ATTCollectionHistoryDB["windowVisible"] = true
             end
 		end,
         OnTooltipShow = function(tooltip)
@@ -70,6 +79,11 @@ function event:ADDON_LOADED(addOnName, containsBindings)
         app.Initialise()
         app.Settings()
         app.MinimapIcon()
+        if ATTCollectionHistoryDB["windowVisible"] then
+            app.CreateHistoryWindow()
+            ATTCH_HistoryFrame:UpdateHistory()
+            ATTCH_HistoryFrame:Show()
+        end
     end
 end
 
@@ -92,12 +106,19 @@ function app.CreateHistoryWindow()
     frame:SetBackdropBorderColor(1, 1, 1, 0.8)
     frame:SetSize(ATTCollectionHistoryDB.windowPosition.width, ATTCollectionHistoryDB.windowPosition.height)
     frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", ATTCollectionHistoryDB.windowPosition.left, ATTCollectionHistoryDB.windowPosition.bottom)
-    frame:SetMovable(true)
-    frame:EnableMouse(true)
+    frame:SetMovable(not ATTCollectionHistoryDB["windowLocked"])
+    frame:EnableMouse(not ATTCollectionHistoryDB["windowLocked"])
     frame:SetClampedToScreen(true)
-    frame:RegisterForDrag("LeftButton")
-    frame:SetScript("OnDragStart", frame.StartMoving)
-    frame:SetScript("OnDragStop", function() frame:SavePosition() end)
+    if not ATTCollectionHistoryDB["windowLocked"] then
+        frame:RegisterForDrag("LeftButton")
+        frame:SetScript("OnDragStart", frame.StartMoving)
+        frame:SetScript("OnDragStop", function() frame:SavePosition() end)
+    else
+        -- Ensure dragging is disabled when the window is locked
+        frame:RegisterForDrag()
+        frame:SetScript("OnDragStart", nil)
+        frame:SetScript("OnDragStop", nil)
+    end
     frame:SetResizable(true)
 	frame:SetResizeBounds(200, 200, 800, 800)
     frame:SetToplevel(true)
@@ -107,17 +128,6 @@ function app.CreateHistoryWindow()
     title:SetFontObject("GameFontHighlight")
     title:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -10)
     title:SetText("ATT Collection History")
-
-    -- Resize corner
-	local corner = CreateFrame("Button", nil, frame)
-	corner:EnableMouse("true")
-	corner:SetPoint("BOTTOMRIGHT")
-	corner:SetSize(20,20)
-	corner:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
-	corner:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
-	corner:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
-	corner:SetScript("OnMouseDown", function() frame:StartSizing("BOTTOMRIGHT") end)
-	corner:SetScript("OnMouseUp", function() frame:SavePosition() end)
 
     -- ScrollFrame
     local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
@@ -134,6 +144,74 @@ function app.CreateHistoryWindow()
     -- Close button
     frame.close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     frame.close:SetPoint("TOPRIGHT", frame, "TOPRIGHT")
+    frame.close:SetScript("OnClick", function() 
+        frame:Hide() 
+        ATTCollectionHistoryDB["windowVisible"] = false
+    end)
+
+    -- Resize corner
+	local corner = CreateFrame("Button", nil, frame)
+	corner:EnableMouse("true")
+	corner:SetPoint("BOTTOMRIGHT")
+	corner:SetSize(20,20)
+	corner:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
+	corner:SetHighlightTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Highlight")
+	corner:SetPushedTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+	corner:SetScript("OnMouseDown", function() frame:StartSizing("BOTTOMRIGHT") end)
+	corner:SetScript("OnMouseUp", function() frame:SavePosition() end)
+    if not ATTCollectionHistoryDB["windowLocked"] then
+        corner:Show()
+    else
+        corner:Hide()
+    end
+
+    -- Lock button
+	local lockButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+	lockButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", 5, 5)
+    lockButton:SetSize(35, 35)
+	lockButton:SetNormalTexture("interface\\buttons\\lockbutton-unlocked-up.blp")
+	lockButton:SetPushedTexture("interface\\buttons\\lockbutton-unlocked-down.blp")
+    if not ATTCollectionHistoryDB["windowLocked"] then
+        lockButton:Show()
+    else
+        lockButton:Hide()
+    end
+
+	-- Unlock button
+	local unlockButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+	unlockButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", 5, 5)
+    unlockButton:SetSize(35, 35)
+	unlockButton:SetNormalTexture("interface\\buttons\\lockbutton-locked-up.blp")
+    unlockButton:SetPushedTexture("interface\\buttons\\lockbutton-locked-up.blp")   -- No "down" texture for the locked state exists, so we use the same texture for both states
+    if ATTCollectionHistoryDB["windowLocked"] then
+        unlockButton:Show()
+    else
+        unlockButton:Hide()
+    end
+
+    -- Lock and unlock button scripts
+    lockButton:SetScript("OnClick", function()
+		ATTCollectionHistoryDB["windowLocked"] = true
+		corner:Hide()
+		lockButton:Hide()
+		unlockButton:Show()
+        frame:EnableMouse(not ATTCollectionHistoryDB["windowLocked"])
+        frame:SetMovable(not ATTCollectionHistoryDB["windowLocked"])
+        frame:RegisterForDrag()
+        frame:SetScript("OnDragStart", nil)
+        frame:SetScript("OnDragStop", nil)
+	end)
+	unlockButton:SetScript("OnClick", function()
+		ATTCollectionHistoryDB["windowLocked"] = false
+		corner:Show()
+		lockButton:Show()
+		unlockButton:Hide()
+        frame:EnableMouse(not ATTCollectionHistoryDB["windowLocked"])
+        frame:SetMovable(not ATTCollectionHistoryDB["windowLocked"])
+        frame:RegisterForDrag("LeftButton")
+        frame:SetScript("OnDragStart", frame.StartMoving)
+        frame:SetScript("OnDragStop", function() frame:SavePosition() end)
+	end)
 
     -- Function to update history
     function frame:UpdateHistory()
@@ -241,7 +319,6 @@ function app.CreateHistoryWindow()
     end
 
     frame:UpdateHistory()
-    frame:Hide()
     ATTCH_HistoryFrame = frame
 end
 
@@ -258,6 +335,7 @@ function ATTCollectionHistory_Click(addOnName, button)
         app.CreateHistoryWindow()
         ATTCH_HistoryFrame:UpdateHistory()
         ATTCH_HistoryFrame:Show()
+        ATTCollectionHistoryDB["windowVisible"] = true
     end
 end
 
@@ -353,6 +431,7 @@ SlashCmdList["ATTCOLLECTIONHISTORY"] = function(msg)
         app.CreateHistoryWindow()
         ATTCH_HistoryFrame:UpdateHistory()
         ATTCH_HistoryFrame:Show()
+        ATTCollectionHistoryDB["windowVisible"] = true
         return
     end
     if filter == "settings" then
