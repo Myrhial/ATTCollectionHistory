@@ -126,6 +126,7 @@ function app.CreateHistoryWindow()
     -- Main frame title
     local title = frame:CreateFontString(nil, "OVERLAY")
     title:SetFontObject("GameFontHighlight")
+    title:SetFontHeight(16)
     title:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -10)
     title:SetText("ATT Collection History")
 
@@ -228,6 +229,7 @@ function app.CreateHistoryWindow()
         if #history == 0 then
             if not content.noData then
                 content.noData = content:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+                content.noData:SetFontHeight(14)
                 content.noData:SetPoint("TOPLEFT", 5, y)
                 content.noData:SetText("No collection history found.")
             end
@@ -264,11 +266,13 @@ function app.CreateHistoryWindow()
                     header = CreateFrame("Frame", nil, content)
                     header:SetSize(340, 22)
                     header.text = header:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+                    header.text:SetFontHeight(14)
                     header.text:SetPoint("LEFT")
                     header.text:SetTextColor(1, 0.82, 0) -- gold/yellow
                     content.lines[lineIndex] = header
                 else
                     header.text:SetFontObject(GameFontHighlightLarge)
+                    header.text:SetFontHeight(14)
                     header.text:SetTextColor(1, 0.82, 0)
                 end
                 header:SetPoint("TOPLEFT", 5, y)
@@ -285,6 +289,7 @@ function app.CreateHistoryWindow()
                 btn = CreateFrame("Button", nil, content)
                 btn:SetSize(340, 16)
                 btn.text = btn:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+                btn.text:SetFontHeight(12)
                 btn.text:SetPoint("LEFT")
                 btn:SetFontString(btn.text)
                 btn:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
