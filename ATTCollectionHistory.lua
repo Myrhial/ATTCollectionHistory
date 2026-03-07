@@ -537,6 +537,14 @@ ATTC.AddEventHandler("OnStartup", function()
     end
 end);
 
+ATTC.AddEventHandler("Settings.OnSet", function(context, setting, value)
+	if (context == "General" and (setting == "Window:BackgroundColor" or setting == "Window:BorderColor")) or (context == "Tooltips" and setting == "Window:UseClassForBorder") then
+		if ATTCH_HistoryFrame and ATTCH_HistoryFrame.ApplyWindowColors then
+            ATTCH_HistoryFrame:ApplyWindowColors()
+        end
+	end
+end)
+
 -- Workaround for collecting heirlooms, since we cannot rely on the OnThingsCollected event for those
 function event:HEIRLOOMS_UPDATED(itemID, updateReason, hideUntilLearned)
     if itemID then
