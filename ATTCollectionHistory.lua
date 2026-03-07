@@ -87,6 +87,33 @@ function event:ADDON_LOADED(addOnName, containsBindings)
     end
 end
 
+-- Helper: Parse date string to timestamp
+local function ParseDateString(dateStr)
+    local y, m, d, H, M, S = dateStr:match("^(%d+)%-(%d+)%-(%d+) (%d+):(%d+):(%d+)$")
+    if y and m and d and H and M and S then
+        return time{year=tonumber(y), month=tonumber(m), day=tonumber(d), hour=tonumber(H), min=tonumber(M), sec=tonumber(S)}
+    end
+    return nil
+end
+
+-- Helper: Format date for display
+local function FormatDateForDisplay(ts)
+    if not ts then
+        return nil
+    end
+    local d = date("*t", ts)
+    return FormatShortDate(d.day, d.month, d.year)
+end
+
+-- Helper: Format date and time for display
+local function FormatDateTimeForDisplay(ts)
+    local dateText = FormatDateForDisplay(ts)
+    if not dateText then
+        return nil
+    end
+    return dateText .. " " .. date("%H:%M:%S", ts)
+end
+
 -- GUI Window to show collection history
 function app.CreateHistoryWindow()
     if ATTCH_HistoryFrame then
@@ -244,7 +271,13 @@ function app.CreateHistoryWindow()
         local lastDayLineIndex
         for i = #history, 1, -1 do
             local entry = history[i]
-            local entryDate = entry.collectedAt:match("^(%d%d%d%d%-%d%d%-%d%d)")
+            local ts = ParseDateString(entry.collectedAt)
+            local entryDate = ts and date("%Y-%m-%d", ts)
+            if not entryDate and entry.collectedAt and type(entry.collectedAt) == "string" then
+                entryDate = entry.collectedAt:match("^(%d%d%d%d%-%d%d%-%d%d)")
+            end
+            entryDate = entryDate or "Unknown date"
+
             if entryDate ~= lastDate then
                 -- Add an empty spacer after the previous day's entries (except before the first header)
                 if lastDate then
@@ -277,7 +310,7 @@ function app.CreateHistoryWindow()
                 end
                 header:SetPoint("TOPLEFT", 5, y)
                 header:Show()
-                header.text:SetText(entryDate)
+                header.text:SetText(FormatDateForDisplay(ts) or entryDate)
                 y = y - 22
                 lineIndex = lineIndex + 1
                 lastDate = entryDate
@@ -308,7 +341,8 @@ function app.CreateHistoryWindow()
             btn:SetPoint("TOPLEFT", 5, y)
             btn:Show()
             btn.link = entry.text
-            btn.text:SetText(entry.collectedAt .. " - " .. entry.text)
+            local displayCollectedAt = FormatDateTimeForDisplay(ts) or tostring(entry.collectedAt or "")
+            btn.text:SetText(displayCollectedAt .. " - " .. entry.text)
             y = y - 16
             lineIndex = lineIndex + 1
         end
@@ -358,14 +392,6 @@ function ATTCollectionHistory_OnLeave(addOnName, button)
     MenuUtil.HideTooltip(button)
 end
 
--- Helper: Parse date string to timestamp
-local function ParseDateString(dateStr)
-    local y, m, d, H, M, S = dateStr:match("^(%d+)%-(%d+)%-(%d+) (%d+):(%d+):(%d+)$")
-    if y and m and d and H and M and S then
-        return time{year=tonumber(y), month=tonumber(m), day=tonumber(d), hour=tonumber(H), min=tonumber(M), sec=tonumber(S)}
-    end
-    return nil
-end
 
 -- Helper: Get start time for filter
 local function GetFilterStartTime(filter)
@@ -416,10 +442,10 @@ function app.PrintHistory(filter)
         elseif ts >= startTime then
             local entryDate = date("%Y-%m-%d", ts)
             if lastDate ~= entryDate then
-                print("---- " .. entryDate .. " ----")
+                print("---- " .. (FormatDateForDisplay(ts) or entryDate) .. " ----")
                 lastDate = entryDate
             end
-            print(value.text, "collected at", value.collectedAt)
+            print(value.text, "collected at", FormatDateTimeForDisplay(ts) or value.collectedAt)
             found = true
         end
     end
