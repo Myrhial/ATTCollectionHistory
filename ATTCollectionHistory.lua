@@ -57,6 +57,7 @@ function app.MinimapIcon()
                 app.OpenSettings()
             else
                 app.CreateHistoryWindow()
+                ATTCH_HistoryFrame:ApplyWindowColors()
                 ATTCH_HistoryFrame:UpdateHistory()
                 ATTCH_HistoryFrame:Show()
                 ATTCollectionHistoryDB["windowVisible"] = true
@@ -81,6 +82,8 @@ function event:ADDON_LOADED(addOnName, containsBindings)
         app.MinimapIcon()
         if ATTCollectionHistoryDB["windowVisible"] then
             app.CreateHistoryWindow()
+            -- Too soon to do this, wait for event to fire
+            --ATTCH_HistoryFrame:ApplyWindowColors()
             ATTCH_HistoryFrame:UpdateHistory()
             ATTCH_HistoryFrame:Show()
         end
@@ -129,8 +132,6 @@ function app.CreateHistoryWindow()
 		edgeSize = 16,
 		insets = { left = 4, right = 4, top = 4, bottom = 4 },
 	})
-	frame:SetBackdropColor(0, 0, 0, 1)
-    frame:SetBackdropBorderColor(1, 1, 1, 0.8)
     frame:SetSize(ATTCollectionHistoryDB.windowPosition.width, ATTCollectionHistoryDB.windowPosition.height)
     frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", ATTCollectionHistoryDB.windowPosition.left, ATTCollectionHistoryDB.windowPosition.bottom)
     frame:SetMovable(not ATTCollectionHistoryDB["windowLocked"])
@@ -357,6 +358,21 @@ function app.CreateHistoryWindow()
         ATTCollectionHistoryDB["windowPosition"] = { ["left"] = left, ["bottom"] = bottom, ["width"] = width, ["height"] = height, }
     end
 
+    -- Sync with ATT settings for colors, with safe fallback
+    function frame:ApplyWindowColors()
+        local rBg, gBg, bBg, aBg, rBd, gBd, bBd, aBd
+        if ATTC and ATTC.Settings and ATTC.Settings.GetWindowColors then
+            rBg, gBg, bBg, aBg, rBd, gBd, bBd, aBd = ATTC.Settings.GetWindowColors()
+        end
+        if not rBg then
+            rBg, gBg, bBg, aBg = 0, 0, 0, 0.9
+            rBd, gBd, bBd, aBd = 1, 1, 1, 1
+        end
+        frame:SetBackdropColor(rBg, gBg, bBg, aBg)
+        frame:SetBackdropBorderColor(rBd, gBd, bBd, aBd)
+        return rBg ~= nil
+    end
+
     frame:UpdateHistory()
     ATTCH_HistoryFrame = frame
 end
@@ -372,6 +388,7 @@ function ATTCollectionHistory_Click(addOnName, button)
         app.OpenSettings()
     else
         app.CreateHistoryWindow()
+        ATTCH_HistoryFrame:ApplyWindowColors()
         ATTCH_HistoryFrame:UpdateHistory()
         ATTCH_HistoryFrame:Show()
         ATTCollectionHistoryDB["windowVisible"] = true
@@ -460,6 +477,7 @@ SlashCmdList["ATTCOLLECTIONHISTORY"] = function(msg)
     local filter = msg:match("^(%S+)")
     if filter == "show" then
         app.CreateHistoryWindow()
+        ATTCH_HistoryFrame:ApplyWindowColors()
         ATTCH_HistoryFrame:UpdateHistory()
         ATTCH_HistoryFrame:Show()
         ATTCollectionHistoryDB["windowVisible"] = true
@@ -510,6 +528,12 @@ ATTC.AddEventHandler("OnThingCollected", function(typeORt)
     -- Update GUI if open
     if ATTCH_HistoryFrame and ATTCH_HistoryFrame:IsShown() then
         ATTCH_HistoryFrame:UpdateHistory()
+    end
+end);
+
+ATTC.AddEventHandler("OnStartup", function()
+    if ATTCH_HistoryFrame and ATTCH_HistoryFrame.ApplyWindowColors then
+        ATTCH_HistoryFrame:ApplyWindowColors()
     end
 end);
 
