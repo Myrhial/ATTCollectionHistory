@@ -1,6 +1,6 @@
 # AllTheThings Collection History
 
-<img width="200" height="200" alt="AllTheThings Collection History logo" src="https://github.com/user-attachments/assets/49956d30-3220-41e8-8149-471dabd4af7f" />
+<img width="200" height="200" alt="AllTheThings Collection History logo" src="https://github.com/user-attachments/assets/f753b4f4-351a-4e03-81c5-6f88f4b293d0" /><br />
 
 A World of Warcraft addon that tracks your collection history in AllTheThings (ATT).
 
@@ -9,5 +9,7 @@ A World of Warcraft addon that tracks your collection history in AllTheThings (A
 * Add the parameters `session`, `day`, `week`, or `month` to filter the results in chat. For the complete history, please use the window.
 * Use `/attch settings` to open the settings window.
 * There is also an entry in the addon compartment as well as a minimap button (which you can turn off in the settings) for easier access to the collection history window.
+
+Logo and icon credit: Dead Serious
 
 Published at https://www.curseforge.com/wow/addons/allthethings-collection-history and https://addons.wago.io/addons/allthethings-collection-history
