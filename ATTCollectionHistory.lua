@@ -562,7 +562,26 @@ function event:HEIRLOOMS_UPDATED(itemID, updateReason, hideUntilLearned)
     end
 end
 
--- TODO: OnThingRemoved?
+-- OnThingRemoved
+ATTC.AddEventHandler("OnThingRemoved", function(typeORt)
+	if type(typeORt) == "table" then
+		if not typeORt or not typeORt.collectible then return end
+
+		-- Remove most recent entry for this collectible from collection history table
+        local text = typeORt.text or typeORt.link or typeORt.name or "[Unknown collectible]"
+        for i = #ATTCollectionHistoryDB.history, 1, -1 do
+            if ATTCollectionHistoryDB.history[i].text == text then
+                table.remove(ATTCollectionHistoryDB.history, i)
+                break
+            end
+        end
+
+        -- Update GUI if open
+        if ATTCH_HistoryFrame and ATTCH_HistoryFrame:IsShown() then
+            ATTCH_HistoryFrame:UpdateHistory()
+        end
+	end
+end)
 
 -- Settings
 function app.Settings()
