@@ -20,27 +20,27 @@ event:RegisterEvent("HEIRLOOMS_UPDATED")
 -- Initial load
 function app.Initialise()
     -- Declare SavedVariables
-	if not ATTCollectionHistoryDB then 
-        ATTCollectionHistoryDB = {} 
+	if not ATTCollectionHistoryDB then
+        ATTCollectionHistoryDB = {}
     end
 
     -- Default collection history table
-    if not ATTCollectionHistoryDB.history then 
-        ATTCollectionHistoryDB.history = {} 
+    if not ATTCollectionHistoryDB.history then
+        ATTCollectionHistoryDB.history = {}
     end
-    if not ATTCollectionHistoryDB.windowPosition then 
-        ATTCollectionHistoryDB.windowPosition = { ["left"] = 500, ["bottom"] = 500, ["width"] = 400, ["height"] = 400 } 
+    if not ATTCollectionHistoryDB.windowPosition then
+        ATTCollectionHistoryDB.windowPosition = { ["left"] = 500, ["bottom"] = 500, ["width"] = 400, ["height"] = 400 }
     end
 
-    if ATTCollectionHistoryDB.windowLocked == nil then 
+    if ATTCollectionHistoryDB.windowLocked == nil then
         ATTCollectionHistoryDB.windowLocked = false
     end
 
-    if ATTCollectionHistoryDB.windowVisible == nil then 
+    if ATTCollectionHistoryDB.windowVisible == nil then
         ATTCollectionHistoryDB.windowVisible = false
     end
-    
-    if ATTCollectionHistoryDB["hide"] == nil then 
+
+    if ATTCollectionHistoryDB["hide"] == nil then
 		ATTCollectionHistoryDB["hide"] = false
 	end
 end
@@ -52,7 +52,7 @@ function app.MinimapIcon()
 		type = "data source",
 		text = app.Name,
 		icon = "Interface\\AddOns\\ATTCollectionHistory\\ATTCollectionHistory.blp",
-		OnClick = function(frame, button) 
+		OnClick = function(frame, button)
 			if button == "RightButton" then
                 app.OpenSettings()
             else
@@ -173,8 +173,8 @@ function app.CreateHistoryWindow()
     -- Close button
     frame.close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
     frame.close:SetPoint("TOPRIGHT", frame, "TOPRIGHT")
-    frame.close:SetScript("OnClick", function() 
-        frame:Hide() 
+    frame.close:SetScript("OnClick", function()
+        frame:Hide()
         ATTCollectionHistoryDB["windowVisible"] = false
     end)
 
@@ -351,7 +351,7 @@ function app.CreateHistoryWindow()
     end
 
     function frame:SavePosition()
-        frame:StopMovingOrSizing() 
+        frame:StopMovingOrSizing()
         local left = frame:GetLeft()
         local bottom = frame:GetBottom()
         local width, height = frame:GetSize()
@@ -521,7 +521,7 @@ ATTC.AddEventHandler("OnThingCollected", function(typeORt)
             collectedAt = date("%Y-%m-%d %H:%M:%S"),
             type = thingType,
         });
-	else    
+	else
         -- Heirlooms (upgrades only) go here: see workaround below
 	end
 
