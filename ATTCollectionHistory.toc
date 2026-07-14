@@ -1,4 +1,4 @@
-## Interface: 11508, 20505, 30403, 40402, 50503, 120001
+## Interface: 11508, 20506, 30403, 40402, 50503, 120007
 ## Version: @project-version@
 ## X-Curse-Project-ID: 1415157
 ## X-Wago-ID: 96dogONO
@@ -6,7 +6,7 @@
 ## Notes-enUS: A companion addon for AllTheThings that tracks collection history.
 ## Notes-deDE: Ein Begleitaddon für AllTheThings, das die Sammlungsverlauf verfolgt.
 ## Notes-esES: Un complemento para AllTheThings que rastrea el historial de colecciones.
-## Notes-esMX: Un complemento para AllTheThings que rastrea el historial de colecciones.
+## Notes-esMX: Un addon para AllTheThings que rastrea el historial de colecciones.
 ## Notes-frFR: Un addon compagnon pour AllTheThings qui suit l'historique des collections.
 ## Notes-itIT: Un addon companion per AllTheThings che tiene traccia della cronologia delle collezioni.
 ## Notes-koKR: AllTheThings의 수집 기록을 추적하는 동반 애드온입니다.
@@ -43,9 +43,10 @@ ATTCollectionHistory.lua
 Localization\Localization.core.lua
 Localization\Localization.de.lua
 Localization\Localization.en.lua
-Localization\Localization.fr.lua
 Localization\Localization.es.lua
+Localization\Localization.fr.lua
 Localization\Localization.it.lua
+Localization\Localization.mx.lua
 Localization\Localization.ko.lua
 Localization\Localization.pt.lua
 Localization\Localization.ru.lua
