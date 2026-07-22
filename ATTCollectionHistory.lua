@@ -507,6 +507,7 @@ function app.PrintHistory(filter)
 
 	filter = filter and filter:lower()
 	local startTime = filter and GetFilterStartTime(filter) or 0
+	print("Count: " .. CountSince(startTime))
 
 	local lastDate = nil
 	local found = false -- Track if any entry matches filter
