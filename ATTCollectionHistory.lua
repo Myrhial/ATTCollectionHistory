@@ -110,6 +110,39 @@ local function FormatDateTimeForDisplay(ts)
 	return dateText .. " " .. date("%H:%M:%S", ts)
 end
 
+-- Helper: Get start time for filter
+local function GetFilterStartTime(filter)
+	local now = time()
+	local d = date("*t", now)
+	if filter == "session" then
+		return app.sessionStart or now
+	elseif filter == "day" then
+		return time{year=d.year, month=d.month, day=d.day, hour=0}
+	elseif filter == "week" then
+		local wday = d.wday -- 1=Sunday, 2=Monday, ..., 7=Saturday
+		-- Calculate days since Monday (if today is Monday, wday=2, so offset=0)
+		local offset = (wday == 1) and 6 or (wday - 2)
+		local startDay = now - offset * 86400
+		local start = date("*t", startDay)
+		return time{year=start.year, month=start.month, day=start.day, hour=0}
+	elseif filter == "month" then
+		return time{year=d.year, month=d.month, day=1, hour=0}
+	end
+	return 0
+end
+
+-- Helper: Count entries since a given timestamp
+local function CountSince(startTime)
+    local count = 0
+    for _, entry in ipairs(ATTCollectionHistoryDB.history or {}) do
+        local ts = entry.collectedAt and ParseDateString(entry.collectedAt)
+        if ts and ts >= startTime then
+            count = count + 1
+        end
+    end
+    return count
+end
+
 -------------------------------------------------------------------------------
 -- History window construction helpers
 -------------------------------------------------------------------------------
@@ -139,9 +172,28 @@ local function CreateTitleBar(frame)
 	title:SetText("ATT Collection History")
 end
 
+local function CreateSummary(frame)
+	local now = time()
+	local d = date("*t", now)
+	local todayStart = time{ year = d.year, month = d.month, day = d.day, hour = 0, min = 0, sec = 0 }
+	local weekStart = GetFilterStartTime("week")
+	local monthStart = time{ year = d.year, month = d.month, day = 1, hour = 0, min = 0, sec = 0 }
+
+	local todayCount = CountSince(todayStart)
+	local weekCount = CountSince(weekStart)
+	local monthCount = CountSince(monthStart)
+	local totalCount = #(ATTCollectionHistoryDB.history or {})
+
+	local title = frame:CreateFontString(nil, "OVERLAY")
+	title:SetFontObject("GameFontHighlight")
+	title:SetFontHeight(12)
+	title:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -30)
+	title:SetText(("Today: %d | Week: %d | Month: %d | Total: %d"):format(todayCount, weekCount, monthCount, totalCount))
+end
+
 local function CreateScrollArea(frame)
 	local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
-	scrollFrame:SetPoint("TOPLEFT", 5, -25)
+	scrollFrame:SetPoint("TOPLEFT", 5, -50)
 	scrollFrame:SetPoint("BOTTOMRIGHT", -26, 15)
 
 	local content = CreateFrame("Frame", nil, scrollFrame)
@@ -254,7 +306,7 @@ local function AttachFrameMethods(frame)
 		end
 		content.lines = {}
 
-		local y = -5
+		local y = 0
 		local history = ATTCollectionHistoryDB and ATTCollectionHistoryDB.history or {}
 
 		if #history == 0 then
@@ -366,6 +418,7 @@ function app.CreateHistoryWindow()
 
 	local frame = CreateMainFrame()
 	CreateTitleBar(frame)
+	CreateSummary(frame)
 	CreateScrollArea(frame)
 	CreateCloseButton(frame)
 	CreateResizeCorner(frame)
@@ -435,27 +488,6 @@ end
 -------------------------------------------------------------------------------
 -- Print history to chat
 -------------------------------------------------------------------------------
-
--- Helper: Get start time for filter
-local function GetFilterStartTime(filter)
-	local now = time()
-	local d = date("*t", now)
-	if filter == "session" then
-		return app.sessionStart or now
-	elseif filter == "day" then
-		return time{year=d.year, month=d.month, day=d.day, hour=0}
-	elseif filter == "week" then
-		local wday = d.wday -- 1=Sunday, 2=Monday, ..., 7=Saturday
-		-- Calculate days since Monday (if today is Monday, wday=2, so offset=0)
-		local offset = (wday == 1) and 6 or (wday - 2)
-		local startDay = now - offset * 86400
-		local start = date("*t", startDay)
-		return time{year=start.year, month=start.month, day=start.day, hour=0}
-	elseif filter == "month" then
-		return time{year=d.year, month=d.month, day=1, hour=0}
-	end
-	return 0
-end
 
 -- Record session start
 app.sessionStart = time()
