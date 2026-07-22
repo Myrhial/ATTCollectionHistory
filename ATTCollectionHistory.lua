@@ -101,7 +101,7 @@ local function FormatDateForDisplay(ts)
 	return FormatShortDate(d.day, d.month, d.year)
 end
 
--- Helper: Format date and time for display
+-- Helper: Format date and time for display (unused, but kept for potential future use)
 local function FormatDateTimeForDisplay(ts)
 	local dateText = FormatDateForDisplay(ts)
 	if not dateText then
@@ -345,7 +345,7 @@ local function AttachFrameMethods(frame)
 			btn:SetPoint("TOPLEFT", 5, y)
 			btn:Show()
 			btn.link = entry.text
-			local displayCollectedAt = FormatDateTimeForDisplay(ts) or tostring(entry.collectedAt or "")
+			local displayCollectedAt = date("%H:%M:%S", ts) or "??:??:??"
 			btn.text:SetText(displayCollectedAt .. " - " .. entryText)
 			y = y - 16
 			lineIndex = lineIndex + 1
@@ -489,7 +489,7 @@ function app.PrintHistory(filter)
 				print("---- " .. (FormatDateForDisplay(ts) or entryDate) .. " ----")
 				lastDate = entryDate
 			end
-			print(entryText, "collected at", FormatDateTimeForDisplay(ts) or value.collectedAt)
+			print(entryText, "collected at", date("%H:%M:%S", ts) or "??:??:??")
 			found = true
 		end
 	end
