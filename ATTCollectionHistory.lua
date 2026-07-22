@@ -521,7 +521,7 @@ SlashCmdList["ATTCOLLECTIONHISTORY"] = function(msg)
 		app.PrintHistory("session")
 		return
 	end
-	print("Usage: /attch [session|day|week|month|show|settings]")
+	print("Usage: /attch [session|day||week|month|show|settings]")
 end
 
 -------------------------------------------------------------------------------
