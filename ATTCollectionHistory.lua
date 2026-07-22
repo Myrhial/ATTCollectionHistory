@@ -274,7 +274,8 @@ local function AttachFrameMethods(frame)
 		local lineIndex = 1
 		for i = #history, 1, -1 do
 			local entry = history[i]
-			local ts = ParseDateString(entry.collectedAt)
+			local entryText = entry.text or "[Missing text]"
+			local ts = entry.collectedAt and ParseDateString(entry.collectedAt)
 			local entryDate = ts and date("%Y-%m-%d", ts)
 			if not entryDate and entry.collectedAt and type(entry.collectedAt) == "string" then
 				entryDate = entry.collectedAt:match("^(%d%d%d%d%-%d%d%-%d%d)")
@@ -345,7 +346,7 @@ local function AttachFrameMethods(frame)
 			btn:Show()
 			btn.link = entry.text
 			local displayCollectedAt = FormatDateTimeForDisplay(ts) or tostring(entry.collectedAt or "")
-			btn.text:SetText(displayCollectedAt .. " - " .. entry.text)
+			btn.text:SetText(displayCollectedAt .. " - " .. entryText)
 			y = y - 16
 			lineIndex = lineIndex + 1
 		end
@@ -478,16 +479,17 @@ function app.PrintHistory(filter)
 	local lastDate = nil
 	local found = false -- Track if any entry matches filter
 	for _, value in ipairs(ATTCollectionHistoryDB.history) do
-		local ts = ParseDateString(value.collectedAt)
+		local entryText = value.text or "[Missing text]"
+		local ts = value.collectedAt and ParseDateString(value.collectedAt)
 		if not ts then
-			print("Warning: Malformed date string", value.collectedAt, "for", value.text)
+			print("Warning: Malformed date string", value.collectedAt, "for", entryText)
 		elseif ts >= startTime then
 			local entryDate = date("%Y-%m-%d", ts)
 			if lastDate ~= entryDate then
 				print("---- " .. (FormatDateForDisplay(ts) or entryDate) .. " ----")
 				lastDate = entryDate
 			end
-			print(value.text, "collected at", FormatDateTimeForDisplay(ts) or value.collectedAt)
+			print(entryText, "collected at", FormatDateTimeForDisplay(ts) or value.collectedAt)
 			found = true
 		end
 	end
