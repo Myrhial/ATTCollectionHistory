@@ -10,6 +10,6 @@ A World of Warcraft addon that tracks your collection history in AllTheThings (A
 * Use `/attch settings` to open the settings window.
 * There is also an entry in the addon compartment as well as a minimap button (which you can turn off in the settings) for easier access to the collection history window.
 
-Logo and icon credit: Dead Serious
+Logo, icon and button art credit: Dead Serious
 
 Published at https://www.curseforge.com/wow/addons/allthethings-collection-history and https://addons.wago.io/addons/allthethings-collection-history

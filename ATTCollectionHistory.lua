@@ -192,9 +192,16 @@ local function CreateSummary(frame)
 end
 
 local function CreateScrollArea(frame)
-	local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "UIPanelScrollFrameTemplate")
-	scrollFrame:SetPoint("TOPLEFT", 5, -50)
-	scrollFrame:SetPoint("BOTTOMRIGHT", -26, 15)
+	local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "ScrollFrameTemplate")
+	scrollFrame:SetPoint("TOPLEFT", 5, -45)
+	scrollFrame:SetPoint("BOTTOMRIGHT", -20, 10)
+
+	scrollFrame.ScrollBar.Back:Hide()
+	scrollFrame.ScrollBar.Forward:Hide()
+	scrollFrame.ScrollBar:ClearAllPoints()
+	scrollFrame.ScrollBar:SetPoint("TOP", scrollFrame, 0, 40)
+	scrollFrame.ScrollBar:SetPoint("RIGHT", scrollFrame, 12, 0)
+	scrollFrame.ScrollBar:SetPoint("BOTTOM", scrollFrame, 0, -20)
 
 	local content = CreateFrame("Frame", nil, scrollFrame)
 	content:SetSize(1, 1)
@@ -206,7 +213,8 @@ end
 
 local function CreateCloseButton(frame)
 	frame.close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-	frame.close:SetPoint("TOPRIGHT", frame, "TOPRIGHT")
+	frame.close:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -3, -2)
+	frame.close:SetSize(20, 20)
 	frame.close:SetScript("OnClick", function()
 		frame:Hide()
 		ATTCollectionHistoryDB.windowVisible = false
@@ -228,17 +236,25 @@ end
 
 local function CreateLockButtons(frame)
 	local lockButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-	lockButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", 5, 5)
-	lockButton:SetSize(35, 35)
-	lockButton:SetNormalTexture("interface\\buttons\\lockbutton-unlocked-up.blp")
-	lockButton:SetPushedTexture("interface\\buttons\\lockbutton-unlocked-down.blp")
+	lockButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", -1, 0)
+	lockButton:SetSize(20, 20)
+	lockButton:SetNormalTexture("Interface\\AddOns\\ATTCollectionHistory\\assets\\buttons.blp")
+	lockButton:GetNormalTexture():SetTexCoord(183/256, 219/256, 1/128, 39/128)
+	lockButton:SetDisabledTexture("Interface\\AddOns\\ATTCollectionHistory\\assets\\buttons.blp")
+	lockButton:GetDisabledTexture():SetTexCoord(183/256, 219/256, 41/128, 79/128)
+	lockButton:SetPushedTexture("Interface\\AddOns\\ATTCollectionHistory\\assets\\buttons.blp")
+	lockButton:GetPushedTexture():SetTexCoord(183/256, 219/256, 81/128, 119/128)
 	frame.lockButton = lockButton
 
 	local unlockButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-	unlockButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", 5, 5)
-	unlockButton:SetSize(35, 35)
-	unlockButton:SetNormalTexture("interface\\buttons\\lockbutton-locked-up.blp")
-	unlockButton:SetPushedTexture("interface\\buttons\\lockbutton-locked-up.blp")   -- No "down" texture for the locked state exists, so we use the same texture for both states
+	unlockButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", -1, 0)
+	unlockButton:SetSize(20, 20)
+	unlockButton:SetNormalTexture("Interface\\AddOns\\ATTCollectionHistory\\assets\\buttons.blp")
+	unlockButton:GetNormalTexture():SetTexCoord(148/256, 184/256, 1/128, 39/128)
+	unlockButton:SetDisabledTexture("Interface\\AddOns\\ATTCollectionHistory\\assets\\buttons.blp")
+	unlockButton:GetDisabledTexture():SetTexCoord(148/256, 184/256, 41/128, 79/128)
+	unlockButton:SetPushedTexture("Interface\\AddOns\\ATTCollectionHistory\\assets\\buttons.blp")
+	unlockButton:GetPushedTexture():SetTexCoord(148/256, 184/256, 81/128, 119/128)
 	frame.unlockButton = unlockButton
 
 	lockButton:SetScript("OnClick", function() frame:SetLocked(true) end)
