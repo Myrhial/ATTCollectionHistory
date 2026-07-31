@@ -77,6 +77,7 @@ function event:ADDON_LOADED(addOnName, containsBindings)
 			app.CreateHistoryWindow()
 			-- Too soon to do this, wait for event to fire
 			--ATTCH_HistoryFrame:ApplyWindowColors()
+			ATTCH_HistoryFrame:UpdateSummary()
 			ATTCH_HistoryFrame:UpdateHistory()
 			ATTCH_HistoryFrame:Show()
 		end
@@ -173,22 +174,10 @@ local function CreateTitleBar(frame)
 end
 
 local function CreateSummary(frame)
-	local now = time()
-	local d = date("*t", now)
-	local todayStart = time{ year = d.year, month = d.month, day = d.day, hour = 0, min = 0, sec = 0 }
-	local weekStart = GetFilterStartTime("week")
-	local monthStart = time{ year = d.year, month = d.month, day = 1, hour = 0, min = 0, sec = 0 }
-
-	local todayCount = CountSince(todayStart)
-	local weekCount = CountSince(weekStart)
-	local monthCount = CountSince(monthStart)
-	local totalCount = #(ATTCollectionHistoryDB.history or {})
-
-	local title = frame:CreateFontString(nil, "OVERLAY")
-	title:SetFontObject("GameFontHighlight")
-	title:SetFontHeight(12)
-	title:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -30)
-	title:SetText(("Today: %d | Week: %d | Month: %d | Total: %d"):format(todayCount, weekCount, monthCount, totalCount))
+	frame.summaryText = frame:CreateFontString(nil, "OVERLAY")
+	frame.summaryText:SetFontObject("GameFontHighlight")
+	frame.summaryText:SetFontHeight(12)
+	frame.summaryText:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -30)
 end
 
 local function CreateScrollArea(frame)
@@ -309,6 +298,21 @@ local function AttachFrameMethods(frame)
 		frame:SetBackdropColor(rBg, gBg, bBg, aBg)
 		frame:SetBackdropBorderColor(rBd, gBd, bBd, aBd)
 		return rBg ~= nil
+	end
+
+	function frame:UpdateSummary()
+		local now = time()
+		local d = date("*t", now)
+		local todayStart = time{ year = d.year, month = d.month, day = d.day, hour = 0, min = 0, sec = 0 }
+		local weekStart = GetFilterStartTime("week")
+		local monthStart = time{ year = d.year, month = d.month, day = 1, hour = 0, min = 0, sec = 0 }
+
+		local todayCount = CountSince(todayStart)
+		local weekCount = CountSince(weekStart)
+		local monthCount = CountSince(monthStart)
+		local totalCount = #(ATTCollectionHistoryDB.history or {})
+
+		frame.summaryText:SetText(("Today: %d | Week: %d | Month: %d | Total: %d"):format(todayCount, weekCount, monthCount, totalCount))
 	end
 
 	function frame:UpdateHistory()
@@ -444,6 +448,7 @@ function app.CreateHistoryWindow()
 	-- Apply initial lock state (sets drag, movability, button visibility)
 	frame:SetLocked(ATTCollectionHistoryDB.windowLocked)
 
+	frame:UpdateSummary()
 	frame:UpdateHistory()
 	ATTCH_HistoryFrame = frame
 end
@@ -452,6 +457,7 @@ end
 function app.ShowHistoryWindow()
 	app.CreateHistoryWindow()
 	ATTCH_HistoryFrame:ApplyWindowColors()
+	ATTCH_HistoryFrame:UpdateSummary()
 	ATTCH_HistoryFrame:UpdateHistory()
 	ATTCH_HistoryFrame:Show()
 	ATTCollectionHistoryDB.windowVisible = true
@@ -468,6 +474,7 @@ end
 -- Refresh the history window if it is currently visible
 function app.UpdateHistoryWindow()
 	if ATTCH_HistoryFrame and ATTCH_HistoryFrame:IsShown() then
+		ATTCH_HistoryFrame:UpdateSummary()
 		ATTCH_HistoryFrame:UpdateHistory()
 	end
 end
