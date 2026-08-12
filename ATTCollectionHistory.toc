@@ -1,4 +1,4 @@
-## Interface: 11508, 20506, 30403, 40402, 50503, 120007
+## Interface: 11508, 11509, 20506, 30405, 38001, 40402, 50504, 120100
 ## Version: @project-version@
 ## X-Curse-Project-ID: 1415157
 ## X-Wago-ID: 96dogONO
