@@ -134,14 +134,70 @@ end
 
 -- Helper: Count entries since a given timestamp
 local function CountSince(startTime)
-    local count = 0
-    for _, entry in ipairs(ATTCollectionHistoryDB.history or {}) do
-        local ts = entry.collectedAt and ParseDateString(entry.collectedAt)
-        if ts and ts >= startTime then
-            count = count + 1
-        end
-    end
-    return count
+	local count = 0
+	local history = ATTCollectionHistoryDB.history or {}
+	for index = #history, 1, -1 do
+		local timestamp = history[index].collectedAt and ParseDateString(history[index].collectedAt)
+		if timestamp then
+			if timestamp < startTime then break end
+			count = count + 1
+		end
+	end
+	return count
+end
+
+local summaryCache
+
+-- Helper: Get summary period starts (today, week, month)
+local function GetSummaryPeriodStarts()
+	local now = time()
+	local d = date("*t", now)
+	return time{ year = d.year, month = d.month, day = d.day, hour = 0, min = 0, sec = 0 },
+		GetFilterStartTime("week"),
+		time{ year = d.year, month = d.month, day = 1, hour = 0, min = 0, sec = 0 }
+end
+
+-- Helper: Get summary counts (today, week, month)
+local function GetSummaryCounts()
+	local todayStart, weekStart, monthStart = GetSummaryPeriodStarts()
+	if summaryCache and summaryCache.todayStart == todayStart and summaryCache.weekStart == weekStart and summaryCache.monthStart == monthStart then
+		return summaryCache.today, summaryCache.week, summaryCache.month
+	end
+
+	summaryCache = {
+		todayStart = todayStart,
+		weekStart = weekStart,
+		monthStart = monthStart,
+		today = 0,
+		week = 0,
+		month = 0,
+	}
+	for _, entry in ipairs(ATTCollectionHistoryDB.history or {}) do
+		local timestamp = entry.collectedAt and ParseDateString(entry.collectedAt)
+		if timestamp then
+			if timestamp >= todayStart then summaryCache.today = summaryCache.today + 1 end
+			if timestamp >= weekStart then summaryCache.week = summaryCache.week + 1 end
+			if timestamp >= monthStart then summaryCache.month = summaryCache.month + 1 end
+		end
+	end
+	return summaryCache.today, summaryCache.week, summaryCache.month
+end
+
+-- Helper: Update summary cache when adding/removing an entry
+local function UpdateSummaryCache(entry, change)
+	if not summaryCache then return end
+
+	local todayStart, weekStart, monthStart = GetSummaryPeriodStarts()
+	if summaryCache.todayStart ~= todayStart or summaryCache.weekStart ~= weekStart or summaryCache.monthStart ~= monthStart then
+		summaryCache = nil
+		return
+	end
+
+	local timestamp = entry.collectedAt and ParseDateString(entry.collectedAt)
+	if not timestamp then return end
+	if timestamp >= todayStart then summaryCache.today = summaryCache.today + change end
+	if timestamp >= weekStart then summaryCache.week = summaryCache.week + change end
+	if timestamp >= monthStart then summaryCache.month = summaryCache.month + change end
 end
 
 -------------------------------------------------------------------------------
@@ -301,15 +357,7 @@ local function AttachFrameMethods(frame)
 	end
 
 	function frame:UpdateSummary()
-		local now = time()
-		local d = date("*t", now)
-		local todayStart = time{ year = d.year, month = d.month, day = d.day, hour = 0, min = 0, sec = 0 }
-		local weekStart = GetFilterStartTime("week")
-		local monthStart = time{ year = d.year, month = d.month, day = 1, hour = 0, min = 0, sec = 0 }
-
-		local todayCount = CountSince(todayStart)
-		local weekCount = CountSince(weekStart)
-		local monthCount = CountSince(monthStart)
+		local todayCount, weekCount, monthCount = GetSummaryCounts()
 		local totalCount = #(ATTCollectionHistoryDB.history or {})
 
 		frame.summaryText:SetText(("Today: %d | Week: %d | Month: %d | Total: %d"):format(todayCount, weekCount, monthCount, totalCount))
@@ -602,11 +650,13 @@ ATTC.AddEventHandler("OnThingCollected", function(typeORt)
 
 		-- Record collection to collection history table in SavedVariables
 		local text = typeORt.text or typeORt.link or typeORt.name or "[Unknown collectible]"
-		table.insert(ATTCollectionHistoryDB.history, {
+		local entry = {
 			text = text,
 			collectedAt = date("%Y-%m-%d %H:%M:%S"),
 			type = thingType,
-		})
+		}
+		table.insert(ATTCollectionHistoryDB.history, entry)
+		UpdateSummaryCache(entry, 1)
 	else
 		-- Heirlooms (upgrades only) go here: see workaround below
 	end
@@ -632,11 +682,13 @@ end)
 function event:HEIRLOOMS_UPDATED(itemID, updateReason, hideUntilLearned)
 	if itemID then
 		local name, itemLink = GetItemInfo(itemID)
-		table.insert(ATTCollectionHistoryDB.history, {
+		local entry = {
 			text = itemLink or name or ("Heirloom " .. itemID),
 			collectedAt = date("%Y-%m-%d %H:%M:%S"),
 			type = "Heirlooms",
-		})
+		}
+		table.insert(ATTCollectionHistoryDB.history, entry)
+		UpdateSummaryCache(entry, 1)
 
 		app.UpdateHistoryWindow()
 	end
@@ -651,7 +703,8 @@ ATTC.AddEventHandler("OnThingRemoved", function(typeORt)
 		local text = typeORt.text or typeORt.link or typeORt.name or "[Unknown collectible]"
 		for i = #ATTCollectionHistoryDB.history, 1, -1 do
 			if ATTCollectionHistoryDB.history[i].text == text then
-				table.remove(ATTCollectionHistoryDB.history, i)
+				local entry = table.remove(ATTCollectionHistoryDB.history, i)
+				UpdateSummaryCache(entry, -1)
 				break
 			end
 		end
