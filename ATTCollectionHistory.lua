@@ -392,7 +392,8 @@ local function AttachFrameMethods(frame)
 
 		local lastDate
 		local lineIndex = 1
-		for i = #history, 1, -1 do
+		local firstHistoryIndex = math.max(1, #history - 999)
+		for i = #history, firstHistoryIndex, -1 do
 			local entry = history[i]
 			local entryText = entry.text or "[Missing text]"
 			local ts = entry.collectedAt and ParseDateString(entry.collectedAt)
