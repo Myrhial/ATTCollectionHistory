@@ -310,15 +310,23 @@ local function CreateLockButton(frame)
 end
 
 local function CreateCollapseButton(frame)
-	local collapseButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-	collapseButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", -20, 0)
+	local collapseButton = CreateFrame("Frame", nil, frame, "MaximizeMinimizeButtonFrameTemplate")
+	collapseButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", -23, 0)
 	collapseButton:SetSize(20, 20)
-	collapseButton:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
-	collapseButton:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
-	collapseButton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
-	collapseButton:SetScript("OnClick", function()
+	if not ATTCollectionHistoryDB.windowCollapsed then
+		collapseButton:Minimize()
+		collapseButton:SetMaximizedLook()
+	end
+
+	local function OnMaximize()
 		frame:SetCollapsed(not ATTCollectionHistoryDB.windowCollapsed)
-	end)
+	end
+	local function OnMinimize()
+		frame:SetCollapsed(not ATTCollectionHistoryDB.windowCollapsed)
+	end
+
+	collapseButton:SetOnMaximizedCallback(OnMaximize)
+	collapseButton:SetOnMinimizedCallback(OnMinimize)
 	frame.collapseButton = collapseButton
 end
 
@@ -371,10 +379,6 @@ local function AttachFrameMethods(frame)
 			if frame.corner then
 				frame.corner:Hide()
 			end
-			if frame.collapseButton then
-				frame.collapseButton:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up")
-				frame.collapseButton:SetPushedTexture("Interface\\Buttons\\UI-PlusButton-Down")
-			end
 		else
 			local restoreHeight = frame.expandedHeight or ATTCollectionHistoryDB.windowPosition.height or 400
 			frame.expandedHeight = restoreHeight
@@ -383,12 +387,8 @@ local function AttachFrameMethods(frame)
 			if frame.scrollFrame then
 				frame.scrollFrame:Show()
 			end
-			if frame.corner then
+			if frame.corner and not ATTCollectionHistoryDB.windowLocked then
 				frame.corner:Show()
-			end
-			if frame.collapseButton then
-				frame.collapseButton:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
-				frame.collapseButton:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
 			end
 		end
 	end
