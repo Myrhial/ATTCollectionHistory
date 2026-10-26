@@ -37,6 +37,9 @@ function app.Initialise()
 	if ATTCollectionHistoryDB.windowVisible == nil then
 		ATTCollectionHistoryDB.windowVisible = false
 	end
+	if ATTCollectionHistoryDB.windowCollapsed == nil then
+		ATTCollectionHistoryDB.windowCollapsed = false
+	end
 	if ATTCollectionHistoryDB.hide == nil then
 		ATTCollectionHistoryDB.hide = false
 	end
@@ -213,10 +216,10 @@ local function CreateMainFrame()
 		insets = { left = 4, right = 4, top = 4, bottom = 4 },
 	})
 	frame:SetSize(ATTCollectionHistoryDB.windowPosition.width, ATTCollectionHistoryDB.windowPosition.height)
-	frame:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", ATTCollectionHistoryDB.windowPosition.left, ATTCollectionHistoryDB.windowPosition.bottom)
+	frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", ATTCollectionHistoryDB.windowPosition.left, ATTCollectionHistoryDB.windowPosition.bottom)
 	frame:SetClampedToScreen(true)
 	frame:SetResizable(true)
-	frame:SetResizeBounds(200, 200, 800, 800)
+	frame:SetResizeBounds(300, 200, 800, 800)
 	frame:SetToplevel(true)
 	return frame
 end
@@ -268,7 +271,7 @@ end
 
 local function CreateResizeCorner(frame)
 	local corner = CreateFrame("Button", nil, frame)
-	corner:EnableMouse("true")
+	corner:EnableMouse(true)
 	corner:SetPoint("BOTTOMRIGHT")
 	corner:SetSize(20, 20)
 	corner:SetNormalTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Down")
@@ -279,7 +282,7 @@ local function CreateResizeCorner(frame)
 	frame.corner = corner
 end
 
-local function CreateLockButtons(frame)
+local function CreateLockButton(frame)
 	local lockButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
 	lockButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", -1, 0)
 	lockButton:SetSize(20, 20)
@@ -306,6 +309,19 @@ local function CreateLockButtons(frame)
 	unlockButton:SetScript("OnClick", function() frame:SetLocked(false) end)
 end
 
+local function CreateCollapseButton(frame)
+	local collapseButton = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
+	collapseButton:SetPoint("TOPRIGHT", frame.close, "TOPLEFT", -20, 0)
+	collapseButton:SetSize(20, 20)
+	collapseButton:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
+	collapseButton:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
+	collapseButton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square")
+	collapseButton:SetScript("OnClick", function()
+		frame:SetCollapsed(not ATTCollectionHistoryDB.windowCollapsed)
+	end)
+	frame.collapseButton = collapseButton
+end
+
 -------------------------------------------------------------------------------
 -- Frame methods
 -------------------------------------------------------------------------------
@@ -327,9 +343,53 @@ local function AttachFrameMethods(frame)
 			frame:RegisterForDrag("LeftButton")
 			frame:SetScript("OnDragStart", frame.StartMoving)
 			frame:SetScript("OnDragStop", function() frame:SavePosition() end)
-			frame.corner:Show()
+			if not ATTCollectionHistoryDB.windowCollapsed then
+				frame.corner:Show()
+			end
 			frame.lockButton:Show()
 			frame.unlockButton:Hide()
+		end
+	end
+
+	function frame:SetCollapsed(collapsed)
+		ATTCollectionHistoryDB.windowCollapsed = collapsed
+
+		local collapsedHeight = 50
+		if collapsed then
+			local currentHeight = frame:GetHeight()
+			if currentHeight > collapsedHeight then
+				frame.expandedHeight = currentHeight
+				if ATTCollectionHistoryDB.windowPosition then
+					ATTCollectionHistoryDB.windowPosition.height = currentHeight
+				end
+			end
+
+			frame:SetHeight(collapsedHeight)
+			if frame.scrollFrame then
+				frame.scrollFrame:Hide()
+			end
+			if frame.corner then
+				frame.corner:Hide()
+			end
+			if frame.collapseButton then
+				frame.collapseButton:SetNormalTexture("Interface\\Buttons\\UI-PlusButton-Up")
+				frame.collapseButton:SetPushedTexture("Interface\\Buttons\\UI-PlusButton-Down")
+			end
+		else
+			local restoreHeight = frame.expandedHeight or ATTCollectionHistoryDB.windowPosition.height or 400
+			frame.expandedHeight = restoreHeight
+			frame:SetHeight(restoreHeight)
+
+			if frame.scrollFrame then
+				frame.scrollFrame:Show()
+			end
+			if frame.corner then
+				frame.corner:Show()
+			end
+			if frame.collapseButton then
+				frame.collapseButton:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
+				frame.collapseButton:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
+			end
 		end
 	end
 
@@ -491,12 +551,12 @@ function app.CreateHistoryWindow()
 	CreateScrollArea(frame)
 	CreateCloseButton(frame)
 	CreateResizeCorner(frame)
-	CreateLockButtons(frame)
+	CreateLockButton(frame)
+	CreateCollapseButton(frame)
 	AttachFrameMethods(frame)
 
-	-- Apply initial lock state (sets drag, movability, button visibility)
 	frame:SetLocked(ATTCollectionHistoryDB.windowLocked)
-
+	frame:SetCollapsed(ATTCollectionHistoryDB.windowCollapsed)
 	frame:UpdateSummary()
 	frame:UpdateHistory()
 	ATTCH_HistoryFrame = frame
