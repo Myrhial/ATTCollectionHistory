@@ -5,7 +5,7 @@ local L = app.L									-- Localisation table
 app.api = {}									-- Api table for our app
 ATTCollectionHistory = app.api  				-- Api namespace
 local api = app.api								-- Api prefix for easier access
-app.Name = "AllTheThings Collection History"	-- Do not localize
+app.Name = "AllTheThings Collection History/"	-- Do not localize
 
 -- Event registration
 local event = CreateFrame("Frame")
@@ -29,7 +29,7 @@ function app.Initialise()
 		ATTCollectionHistoryDB.history = {}
 	end
 	if not ATTCollectionHistoryDB.windowPosition then
-		ATTCollectionHistoryDB.windowPosition = { ["left"] = 500, ["bottom"] = 500, ["width"] = 400, ["height"] = 400 }
+		ATTCollectionHistoryDB.windowPosition = { ["left"] = 500, ["top"] = -500, ["width"] = 400, ["height"] = 400 }
 	end
 	if ATTCollectionHistoryDB.windowLocked == nil then
 		ATTCollectionHistoryDB.windowLocked = false
@@ -216,7 +216,7 @@ local function CreateMainFrame()
 		insets = { left = 4, right = 4, top = 4, bottom = 4 },
 	})
 	frame:SetSize(ATTCollectionHistoryDB.windowPosition.width, ATTCollectionHistoryDB.windowPosition.height)
-	frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", ATTCollectionHistoryDB.windowPosition.left, ATTCollectionHistoryDB.windowPosition.bottom)
+	frame:SetPoint("TOPLEFT", UIParent, "TOPLEFT", ATTCollectionHistoryDB.windowPosition.left, ATTCollectionHistoryDB.windowPosition.top)
 	frame:SetClampedToScreen(true)
 	frame:SetResizable(true)
 	frame:SetResizeBounds(300, 200, 800, 800)
@@ -396,9 +396,9 @@ local function AttachFrameMethods(frame)
 	function frame:SavePosition()
 		frame:StopMovingOrSizing()
 		local left = frame:GetLeft()
-		local bottom = frame:GetBottom()
+		local top = frame:GetTop() - UIParent:GetTop()
 		local width, height = frame:GetSize()
-		ATTCollectionHistoryDB.windowPosition = { left = left, bottom = bottom, width = width, height = height }
+		ATTCollectionHistoryDB.windowPosition = { left = left, top = top, width = width, height = height }
 	end
 
 	-- Sync with ATT settings for colors, with safe fallback
