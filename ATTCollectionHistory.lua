@@ -243,13 +243,21 @@ local function CreateScrollArea(frame)
 	local scrollFrame = CreateFrame("ScrollFrame", nil, frame, "ScrollFrameTemplate")
 	scrollFrame:SetPoint("TOPLEFT", 5, -45)
 	scrollFrame:SetPoint("BOTTOMRIGHT", -20, 10)
-
-	scrollFrame.ScrollBar.Back:Hide()
-	scrollFrame.ScrollBar.Forward:Hide()
 	scrollFrame.ScrollBar:ClearAllPoints()
-	scrollFrame.ScrollBar:SetPoint("TOP", scrollFrame, 0, 40)
-	scrollFrame.ScrollBar:SetPoint("RIGHT", scrollFrame, 12, 0)
-	scrollFrame.ScrollBar:SetPoint("BOTTOM", scrollFrame, 0, -20)
+
+	if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then
+		-- Retail layout
+		scrollFrame.ScrollBar.Back:Hide()
+		scrollFrame.ScrollBar.Forward:Hide()
+		scrollFrame.ScrollBar:SetPoint("TOP", scrollFrame, 0, 40)
+		scrollFrame.ScrollBar:SetPoint("RIGHT", scrollFrame, 12, 0)
+		scrollFrame.ScrollBar:SetPoint("BOTTOM", scrollFrame, 0, -20)
+	else
+		-- Classic-family layout
+		scrollFrame.ScrollBar:SetPoint("TOP", scrollFrame, 0, 22)
+		scrollFrame.ScrollBar:SetPoint("RIGHT", scrollFrame, 10, 0)
+		scrollFrame.ScrollBar:SetPoint("BOTTOM", scrollFrame, 0, -5)
+	end
 
 	local content = CreateFrame("Frame", nil, scrollFrame)
 	content:SetSize(1, 1)
